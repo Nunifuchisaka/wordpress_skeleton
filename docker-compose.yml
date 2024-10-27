@@ -4,7 +4,7 @@ services:
   wordpress:
     image: wordpress:latest
     platform: linux/amd64
-    container_name: wordpress
+    container_name: wordpress_skeleton
     restart: always
     ports:
       - "8080:80"
@@ -20,7 +20,7 @@ services:
   db:
     image: mysql:5.7
     platform: linux/amd64
-    container_name: database
+    container_name: wordpress_skeleton_db
     restart: always
     environment:
       MYSQL_DATABASE: wordpress_db

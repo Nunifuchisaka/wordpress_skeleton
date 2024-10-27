@@ -1,0 +1,3 @@
+# WordPressスケルトン
+
+`$ docker compose up`

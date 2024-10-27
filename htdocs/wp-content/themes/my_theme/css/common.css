@@ -1,0 +1,98 @@
+/*!****************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!./node_modules/postcss-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].use[3]!./src/css/common.scss ***!
+  \****************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+/*
+## .a_fadein_1
+*/
+.a_fadein_1 {
+  opacity: 0;
+  transition: opacity 1s, transform 1s;
+}
+.a_fadein_1.is_b2t {
+  transform: translateY(20px);
+}
+.a_fadein_1.is_r2l {
+  transform: translateX(40px);
+}
+.a_fadein_1.is_animation {
+  opacity: 1;
+}
+.a_fadein_1.is_animation.is_b2t {
+  transform: translateY(0) !important;
+}
+.a_fadein_1.is_animation.is_r2l {
+  transform: translateX(0) !important;
+}
+/*
+## .a_ignite_2
+*/
+.a_ignite_2.is_animation .a_fadein_1 {
+  opacity: 1;
+}
+.a_ignite_2.is_animation .a_fadein_1.is_b2t {
+  transform: translateY(0) !important;
+}
+.a_ignite_2.is_animation .a_fadein_1.is_r2l {
+  transform: translateX(0) !important;
+}
+
+/*
+## .a_ignite_1
+このclass自体はアニメーションを持たない。
+他のclassのアニメーションを発動させる役割。
+*/
+/*
+## .wp_content_1
+*/
+.wp-block-table {
+  position: relative;
+}
+
+.wp-element-caption {
+  text-align: center;
+}
+
+.wp-block-embed.alignright {
+  margin-left: auto;
+}
+.wp-block-embed.aligncenter {
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.wp-block-embed.is-type-video:not(.wp-block-embed-tiktok) .wp-block-embed__wrapper {
+  position: relative;
+  aspect-ratio: 16/9;
+}
+.wp-block-embed.is-type-video:not(.wp-block-embed-tiktok) .wp-block-embed__wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+@media (max-width: 767px){
+  .wp-block-table {
+    overflow-x: auto;
+  }
+  .wp-block-columns {
+    display: block;
+  }
+}
+@media screen and (max-width: 767px){
+  .a_fadein_1.is_b2t {
+    transform: translateY(3vw);
+  }
+  .a_fadein_1.is_r2l {
+    transform: translateX(6vw);
+  }
+}
+@media all and (-ms-high-contrast: none){
+  .a_fadein_1.is_b2t {
+    transform: translateY(20px) !important;
+  }
+  .a_fadein_1.is_r2l {
+    transform: translateX(40px) !important;
+  }
+}
