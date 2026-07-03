@@ -1,0 +1,39 @@
+<?php
+add_action('wp_enqueue_scripts', function (){
+  global $wp_scripts;
+
+  wp_dequeue_style('global-styles');
+  wp_dequeue_style('wp-block-library');
+  wp_dequeue_style('classic-theme-styles');
+
+  wp_enqueue_style(
+    'my_base_css',
+    TD_URI . '/css/base.css',
+    array(),
+    filemtime(TEMPLATEPATH . '/css/base.css')
+  );
+
+  wp_enqueue_style(
+    'my_common_css',
+    TD_URI . '/css/common.css',
+    array('my_base_css'),
+    filemtime(TEMPLATEPATH . '/css/common.css')
+  );
+
+  // jquery-migrate.js を完全に削除する
+  if (!is_admin() && isset($wp_scripts->registered['jquery'])) {
+    $wp_scripts->registered['jquery']->deps = array_diff($wp_scripts->registered['jquery']->deps, array('jquery-migrate'));
+  }
+
+  wp_enqueue_script(
+    'my_common_js',
+    TD_URI . '/js/common.js',
+    array('jquery'),
+    filemtime(TEMPLATEPATH . '/js/common.js'),
+    array(
+      'strategy' => 'defer',
+    )
+  );
+
+}, 100);
+?>

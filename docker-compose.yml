@@ -1,13 +1,10 @@
-version: '3.8'
-
 services:
   wordpress:
     image: wordpress:latest
-    platform: linux/amd64
     container_name: wordpress_skeleton
-    restart: always
+    restart: no
     ports:
-      - "8080:80"
+      - "8081:80"
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: wordpress_user
@@ -16,16 +13,22 @@ services:
     volumes:
       - ./htdocs:/var/www/html
       - ./php.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./dist/theme:/var/www/html/wp-content/themes/hoge
+      - ./dist/plugin:/var/www/html/wp-content/plugins/hoge
+    depends_on:
+      - db
 
   db:
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mariadb:10.6
     container_name: wordpress_skeleton_db
-    restart: always
+    restart: no
     environment:
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wordpress_user
       MYSQL_PASSWORD: wordpress_password
       MYSQL_ROOT_PASSWORD: root_password
     volumes:
-      - ./db_data:/var/lib/mysql
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

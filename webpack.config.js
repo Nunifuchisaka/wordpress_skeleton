@@ -1,131 +1,285 @@
-const DIST_DIR = './htdocs/wp-content/themes/my_theme',
-			SRC_DIR = './src',
-			path = require('path'),
-			glob = require('glob'),
-			DIST_PATH = path.resolve(__dirname, DIST_DIR),
-			SRC_PATH = path.resolve(__dirname, SRC_DIR),
-			RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts'),
-			MiniCssExtractPlugin = require('mini-css-extract-plugin'),
-			TerserPlugin = require('terser-webpack-plugin'),
-			config = {
-				entry: {},
-				plugins: [],
-			};
+const SRC_DIR = './src',
+      DIST_DIR = './dist',
+      DIST_UNCOMPRESSED_DIR = './dist_uncompressed';
 
-module.exports = (env, argv) => {
-	
-	const minify = 'production' === argv.mode;
-	
-	//JS
-	glob.sync('**/*.js', {
-		cwd: SRC_DIR,
-		ignore: '**/_*.js'
-	}).forEach(key => {
-		config.entry[key.replace('.js', '')] = path.resolve(SRC_DIR, key);
-	});
-	
-	//SCSS
-	glob.sync('**/*.scss', {
-		cwd: SRC_DIR,
-		ignore: '**/_*.scss',
-	}).forEach(key => {
-		const cssKey = key.replace('.scss', '.css');
-		config.entry[cssKey] = path.resolve(SRC_DIR, key);
-	});
-	
-	//pluginsを統合
-	config.plugins.push(
-		new MiniCssExtractPlugin({
-			filename: '[name]',
-		}),
-		new RemoveEmptyScriptsPlugin(),
-	);
-	
-	//configを統合
-	return Object.assign(config, {
-		output: {
-			path: DIST_PATH,
-			filename: '[name].js',
-			assetModuleFilename: 'assets/[name][ext][query]',
-		},
-		optimization: {
-			minimize: minify,
-			minimizer: [
-				new TerserPlugin({
-					extractComments: false,
-				})
-			],
-			splitChunks: {
-				name: 'js/vendor',
-				chunks: 'initial',
-			}
-		},
-		module: {
-			rules: [
-				{
-					test: /\.ejs$/i,
-					use: [
-						{
-							loader: 'html-loader',
-							options: {
-								sources: {
-									urlFilter: (attribute, value, resourcePath) => {
-										return false;
-									},
-								},
-								minimize: false,
-							},
-						},
-						'ejs-plain-loader',
-					]
-				},
-				{
-					test: /\.scss$/,
-					use: [
-						MiniCssExtractPlugin.loader,
-						{
-							loader: 'css-loader',
-							options: {
-								//url: false,
-								importLoaders: 2,
-							}
-						},
-						'postcss-loader',
-						{
-							loader: 'sass-loader',
-							options: {
-								implementation: require('sass'),
-								sassOptions: {
-									includePaths: [
-										path.resolve(__dirname, 'node_modules')
-									],
-									outputStyle: (minify)?'compressed':'expanded',
-								}
-							}
-						}
-					]
-				}, {
-					test: /\.(jpg|png|webp|svg|gif|eot|ttf|woff)$/i,
-					type: 'asset',
-					parser: {
-						dataUrlCondition: {
-							maxSize: 50 * 1024,
-						},
-					},
-				}
-			]
-		},
-		watch: true,
-		watchOptions: {
-			ignored: ['/node_modules', '/gitignore']
-		},
-		target: ['web'],
-		resolve: {
-			extensions: ['.ts', '.js']
-		},
-		stats: {
-			errorDetails: true
-		}
-	});
-	
+const BROWSER_SYNC_CONFIG = {
+  proxy: 'http://localhost:8081',
+  host: 'localhost',
 };
+
+const IMAGE_OPTIMIZATION_CONFIG = {
+  IMG_TO_WEBP_SRC_DIR: './img2webp',
+  WEBP_QUALITY: 90,
+};
+
+// --- 以下、webpackの動作設定 ---
+const path = require('path'),
+      glob = require('glob'),
+      RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts'),
+      BrowserSyncPlugin = require('browser-sync-webpack-plugin'),
+      CopyPlugin = require('copy-webpack-plugin'),
+      TerserPlugin = require('terser-webpack-plugin'),
+      HtmlWebpackPlugin = require('html-webpack-plugin'),
+      htmlMinifier = require('html-minifier-terser'),
+      MiniCssExtractPlugin = require('mini-css-extract-plugin'),
+      sharp = require('sharp'),
+      postcss = require('postcss'),
+      cssnano = require('cssnano'),
+      StylelintPlugin = require('stylelint-webpack-plugin'),
+      SRC_PATH = path.resolve(__dirname, SRC_DIR),
+      DIST_PATH = path.resolve(__dirname, DIST_DIR),
+      DIST_UNCOMPRESSED_PATH = path.resolve(__dirname, DIST_UNCOMPRESSED_DIR);
+
+/**
+ * ① 非圧縮版ビルド (出力先: dist_uncompressed)
+ */
+const createConfig_development = ({ outputPath }) => {
+
+  const config = {
+    mode: 'development',
+    devtool: false,
+    entry: {},
+    output: {
+      path: outputPath,
+      filename: '[name].js',
+      assetModuleFilename: 'assets/[name][ext][query]',
+    },
+    module: {
+      rules: [
+        {
+          test: /\.(jpg|jpeg|png|webp|svg|gif|eot|ttf|woff)$/i,
+          type: 'asset/inline',
+          exclude: [
+            /node_modules/,
+            path.resolve(__dirname, IMAGE_OPTIMIZATION_CONFIG.IMG_TO_WEBP_SRC_DIR),
+          ],
+        },
+      ]
+    },
+    plugins: [
+      new RemoveEmptyScriptsPlugin(),
+    ],
+    watch: false,
+    target: ['web'],
+  };
+
+  // CSS (SCSS -> CSS)
+  glob.sync('**/*.scss', { cwd: SRC_PATH, ignore: '**/_*.scss' }).forEach(key => {
+    config.entry[key.replace('.scss', '.css')] = path.resolve(SRC_PATH, key);
+  });
+  config.module.rules.push({
+    test: /\.scss$/,
+    use: [
+      MiniCssExtractPlugin.loader,
+      {
+        loader: 'css-loader',
+        options: {
+          importLoaders: 3,
+          url: {
+            filter: (url, resourcePath) => {
+              if (/(--pc|--sp|--exc)\.(jpg|jpeg|png|webp|svg|gif)(\?\d+)?$/i.test(url)) {
+                return false;
+              }
+              if (url.startsWith('/')) {
+                return false;
+              }
+              return true;
+            },
+          },
+        }
+      },
+      'postcss-loader',
+      {
+        loader: 'resolve-url-loader',
+        options: {
+          sourceMap: true
+        }
+      },
+      {
+        loader: 'sass-loader',
+        options: {
+          sourceMap: true,
+          implementation: require('sass'),
+          sassOptions: {
+            outputStyle: 'expanded'
+          }
+        }
+      }
+    ],
+  });
+  config.plugins.push(
+    new MiniCssExtractPlugin({
+      filename: '[name]'
+    }),
+    new StylelintPlugin({
+      files: [`${SRC_DIR}/**/*.scss`],
+      fix: true
+    }),
+    {
+      apply: (compiler) => {
+        compiler.hooks.emit.tap('RemoveCssBannerPlugin', (compilation) => {
+          for (const assetName in compilation.assets) {
+            if (assetName.endsWith('.css')) {
+              const originalSource = compilation.assets[assetName].source().toString();
+              const cleanedSource = originalSource.replace(/\/\*![\s\S]*?\*\//g, '');
+              compilation.assets[assetName] = {
+                source: () => cleanedSource,
+                size: () => cleanedSource.length
+              };
+            }
+          }
+        });
+      }
+    }
+  );
+
+  // ★ 変更点1: ここにあった EJS（HTML）の処理を完全に削除しました
+
+  return config;
+}
+
+/**
+ * ② 圧縮版ビルド (出力先: dist)
+ */
+const createConfig_production = ({ outputPath }) => {
+
+  const config = {
+    mode: 'production',
+    entry: {},
+    output: {
+      path: outputPath,
+      filename: '[name].js',
+      assetModuleFilename: 'assets/[name][ext][query]',
+    },
+    module: {
+      rules: []
+    },
+    plugins: [],
+    optimization: {
+      minimize: true,
+      minimizer: [ new TerserPlugin({ extractComments: false }) ]
+    },
+    watch: true,
+    watchOptions: {
+      ignored: [
+        '**/node_modules/**',
+        '**/.DS_Store',
+        '**/Thumbs.db',
+       path.resolve(__dirname, IMAGE_OPTIMIZATION_CONFIG.IMG_TO_WEBP_SRC_DIR, '**/*.webp'),
+      ],
+    },
+    target: ['web'],
+    resolve: { extensions: ['.js','.ts'] },
+  };
+
+  // JS
+  glob.sync('**/*.js', { cwd: SRC_PATH, ignore: '**/_*.js' }).forEach(key => {
+    config.entry[key.replace('.js', '')] = path.resolve(SRC_PATH, key);
+  });
+  config.module.rules.push({
+    test: /\.js$/,
+    exclude: /node_modules/,
+    use: 'babel-loader'
+  });
+
+  // ★ 変更点2: EJS -> PHP の処理をこちらに引っ越し
+  // これにより、PHPは最初から直接 dist フォルダにだけ書き出され、さらに常時監視（watch）の対象になります。
+  glob.sync('**/*.ejs', { cwd: SRC_PATH, ignore: '**/_*.ejs' }).forEach(key => {
+    config.plugins.push(
+      new HtmlWebpackPlugin({
+        template: path.resolve(SRC_PATH, key),
+        filename: key.replace('.ejs', '.php'),
+        inject: false,
+        minify: false,
+      })
+    );
+  });
+  config.module.rules.push({
+    test: /\.ejs$/i,
+    use: [
+      {
+        loader: 'html-loader',
+        options: {
+          sources: false,
+          minimize: false
+        }
+      },
+      {
+        loader: 'ejs-plain-loader'
+      }
+    ]
+  });
+
+  config.plugins.push(
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, IMAGE_OPTIMIZATION_CONFIG.IMG_TO_WEBP_SRC_DIR, '**/*.{jpg,jpeg,png}'),
+          to(pathData) {
+            const sourceDir = path.dirname(pathData.absoluteFilename);
+            const sourceName = path.parse(pathData.absoluteFilename).name;
+            return path.join(sourceDir, `${sourceName}.webp`);
+          },
+          async transform(content) {
+            return await sharp(content)
+              .webp({ quality: IMAGE_OPTIMIZATION_CONFIG.WEBP_QUALITY })
+              .toBuffer();
+          },
+          noErrorOnMissing: true,
+        },
+        {
+          from: DIST_UNCOMPRESSED_PATH,
+          to: DIST_PATH,
+          globOptions: {
+            // ★ PHPは dist_uncompressed に最初から出力されないため、
+            // ここでの処理は実質「CSSなどのコピー＆本番圧縮処理」だけになります。
+            ignore: ['**/*.js', '**/.DS_Store', '**/Thumbs.db'],
+          },
+          transform: async (content, absoluteFrom) => {
+            if (absoluteFrom.endsWith('.html')) {
+              return await htmlMinifier.minify(
+                content.toString(), {
+                collapseBooleanAttributes: true,
+                collapseWhitespace: true,
+                removeComments: true,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                useShortDoctype: true,
+                minifyJS: true,
+                minifyCSS: true,
+                processScripts: ['application/ld+json'],
+                includeAutoGeneratedTags: false,
+              });
+            }
+            if (absoluteFrom.endsWith('.css')) {
+              return (
+                await postcss([cssnano({ preset: ['default', { discardComments: { removeAll: true } }] })]).process(content, { from: undefined })).css;
+            }
+            return content;
+          },
+        },
+      ]
+    }),
+    new BrowserSyncPlugin({
+      ...BROWSER_SYNC_CONFIG,
+      files: [
+        DIST_DIR + '/**/*.php',
+        DIST_DIR + '/**/*.css',
+        DIST_DIR + '/**/*.js'
+      ],
+      ghostMode: false,
+    }, { reload: true })
+  );
+
+  return config;
+};
+
+module.exports = [
+  createConfig_development({
+    outputPath: DIST_UNCOMPRESSED_PATH,
+  }),
+  createConfig_production({
+    outputPath: DIST_PATH,
+  }),
+];

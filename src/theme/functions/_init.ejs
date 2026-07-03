@@ -1,0 +1,16 @@
+<?php
+add_action('init', function (){
+
+  // 管理画面の裏側での自動通信（Heartbeat）を完全に停止する
+  // wp_deregister_script('heartbeat');
+
+  if (!is_admin()) {
+    $author = filter_input(INPUT_GET, 'author');
+    if ($author || preg_match('#/author/.+#', $_SERVER['REQUEST_URI'])) {
+      wp_redirect(home_url('/404.php'));
+      exit;
+    }
+  }
+
+}, 1);
+?>

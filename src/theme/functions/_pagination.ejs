@@ -1,0 +1,38 @@
+<?php
+function my_pagination() {
+  global $paged, $wp_query;
+  if (empty($paged)) $paged = 1;
+
+  $pages = $wp_query->max_num_pages;
+  if (!$pages) $pages = 1;
+
+  // ページ数が2ぺージ以上の場合のみ、ページネーションを表示
+  if (1 !== $pages) {
+    $url;
+    $html = '<div class="pagination_1">';
+
+    // 1ページ目でなければ、「前のページ」リンクを表示
+    if ($paged > 1) {
+      $url = esc_url(get_pagenum_link($paged - 1));
+      $html .= "<a class='prev' href='{$url}'></a>";
+    }
+
+    $html .= "<div class='main'><p><span>{$paged}</span>/{$pages}</p><select>";
+    for ($i = 1; $i <= $pages; $i++) {
+      $selected = ($i === $paged) ? ' selected' : '';
+      $url = esc_url(get_pagenum_link($i));
+      $html .= "<option value='{$url}'{$selected}>{$i}</option>";
+    }
+    $html .= '</select></div>';
+
+    // 最終ページでなければ、「次のページ」リンクを表示
+    if ($paged < $pages) {
+      $url = esc_url(get_pagenum_link($paged + 1));
+      $html .= "<a class='next' href='{$url}'></a>";
+    }
+
+    $html .= '</div>';
+    echo $html;
+  }
+}
+?>
