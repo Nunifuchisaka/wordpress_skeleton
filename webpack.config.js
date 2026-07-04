@@ -26,6 +26,7 @@ const path = require('path'),
       postcss = require('postcss'),
       cssnano = require('cssnano'),
       StylelintPlugin = require('stylelint-webpack-plugin'),
+      ESLintPlugin = require('eslint-webpack-plugin'),
       SRC_PATH = path.resolve(__dirname, SRC_DIR),
       DIST_PATH = path.resolve(__dirname, DIST_DIR),
       DIST_UNCOMPRESSED_PATH = path.resolve(__dirname, DIST_UNCOMPRESSED_DIR);
@@ -36,6 +37,7 @@ const path = require('path'),
 const createConfig_development = ({ outputPath }) => {
 
   const config = {
+    name: 'development',
     mode: 'development',
     devtool: false,
     entry: {},
@@ -43,6 +45,8 @@ const createConfig_development = ({ outputPath }) => {
       path: outputPath,
       filename: '[name].js',
       assetModuleFilename: 'assets/[name][ext][query]',
+      // mini-css-extract-plugin が出力CSSの各モジュール先頭に付けるパス情報コメントを抑制する
+      pathinfo: false,
     },
     module: {
       rules: [
@@ -59,7 +63,7 @@ const createConfig_development = ({ outputPath }) => {
     plugins: [
       new RemoveEmptyScriptsPlugin(),
     ],
-    watch: false,
+    watch: true,
     target: ['web'],
   };
 
@@ -114,23 +118,7 @@ const createConfig_development = ({ outputPath }) => {
     new StylelintPlugin({
       files: [`${SRC_DIR}/**/*.scss`],
       fix: true
-    }),
-    {
-      apply: (compiler) => {
-        compiler.hooks.emit.tap('RemoveCssBannerPlugin', (compilation) => {
-          for (const assetName in compilation.assets) {
-            if (assetName.endsWith('.css')) {
-              const originalSource = compilation.assets[assetName].source().toString();
-              const cleanedSource = originalSource.replace(/\/\*![\s\S]*?\*\//g, '');
-              compilation.assets[assetName] = {
-                source: () => cleanedSource,
-                size: () => cleanedSource.length
-              };
-            }
-          }
-        });
-      }
-    }
+    })
   );
 
   // ★ 変更点1: ここにあった EJS（HTML）の処理を完全に削除しました
@@ -144,6 +132,8 @@ const createConfig_development = ({ outputPath }) => {
 const createConfig_production = ({ outputPath }) => {
 
   const config = {
+    name: 'production',
+    dependencies: ['development'],
     mode: 'production',
     entry: {},
     output: {
@@ -165,11 +155,11 @@ const createConfig_production = ({ outputPath }) => {
         '**/node_modules/**',
         '**/.DS_Store',
         '**/Thumbs.db',
-       path.resolve(__dirname, IMAGE_OPTIMIZATION_CONFIG.IMG_TO_WEBP_SRC_DIR, '**/*.webp'),
+       path.resolve(__dirname, IMAGE_OPTIMIZATION_CONFIG.IMG_TO_WEBP_SRC_DIR, '**/*.webp').split(path.sep).join('/'),
       ],
     },
     target: ['web'],
-    resolve: { extensions: ['.js','.ts'] },
+    resolve: { extensions: ['.js'] },
   };
 
   // JS
@@ -181,6 +171,12 @@ const createConfig_production = ({ outputPath }) => {
     exclude: /node_modules/,
     use: 'babel-loader'
   });
+  config.plugins.push(
+    new ESLintPlugin({
+      extensions: ['js'],
+      context: SRC_PATH,
+    })
+  );
 
   // ★ 変更点2: EJS -> PHP の処理をこちらに引っ越し
   // これにより、PHPは最初から直接 dist フォルダにだけ書き出され、さらに常時監視（watch）の対象になります。
