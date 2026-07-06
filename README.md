@@ -28,7 +28,7 @@ npm run db:export  # DBを db/wordpress_db.sql に書き出す（コミット用
 npm run db:import  # db/wordpress_db.sql からDBを復元する（全テーブルを作り直す）
 ```
 
-`db/wordpress_db.sql` にはレイアウト確認用のダミー記事入りのダンプをコミットしてあります。記事を追加・変更してリポジトリに残したいときは `npm run db:export` してからコミットしてください。
+`db/wordpress_db.sql` にはレイアウト確認用のダミー記事（NCFの全フィールド入力済み）入りのダンプをコミットしてあります。ダミー記事が参照する画像ファイルも `htdocs/wp-content/uploads/` 配下にコミット済みです。記事を追加・変更してリポジトリに残したいときは `npm run db:export` してからコミットしてください（画像を追加した場合は `.gitignore` のuploads除外も確認）。
 
 ## ディレクトリ構成
 
