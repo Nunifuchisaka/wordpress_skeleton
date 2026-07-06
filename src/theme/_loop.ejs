@@ -1,13 +1,4 @@
-<?php get_header(); ?>
-
-<h1 class="h1">
-  記事一覧
-</h1>
-
-<?php if (have_posts()): ?>
-  <div class="article_list_1">
-    <?php while (have_posts()): the_post(); ?>
-      <article class="article_list_1__item">
+<article class="article_list_1__item">
   <a class="article_list_1__link" href="<?php the_permalink(); ?>">
     <?php
     // NCFのメイン画像をサムネイルとして表示
@@ -32,12 +23,3 @@
     <?php the_excerpt(); ?>
   </div>
 </article>
-
-    <?php endwhile; ?>
-  </div>
-  <?php my_pagination(); ?>
-<?php else: ?>
-  <p>記事がありません。</p>
-<?php endif; ?>
-
-<?php get_footer();
