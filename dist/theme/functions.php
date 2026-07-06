@@ -274,6 +274,133 @@ remove_action('wp_head', 'feed_links_extra', 3);
 remove_action('wp_head', 'feed_links', 2);
 ?>
 <?php
+add_filter( 'ncf_register_fields', function( $configs ) {
+
+  // --------------------------------------------------
+  // 1. 使い回し用変数の定義
+  // --------------------------------------------------
+  
+  // ラジオボタン定義（変数化）
+  $common_radio = [
+    'key'     => 'priority_radio',
+    'label'   => '優先度 (Radio)',
+    'type'    => 'radio',
+    'options' => [
+      'high'   => '高 (High)',
+      'medium' => '中 (Medium)',
+      'low'    => '低 (Low)',
+    ],
+  ];
+
+  // チェックボックス定義（変数化）
+  $common_check = [
+    'key'     => 'options_check',
+    'label'   => '設備オプション (Checkbox)',
+    'type'    => 'checkbox',
+    'options' => [
+      'wifi'    => 'Wi-Fi',
+      'power'   => '電源',
+      'parking' => '駐車場',
+    ],
+    'desc'    => '複数選択可能です（配列で保存されます）',
+  ];
+
+  // --------------------------------------------------
+  // 2. メタボックス定義
+  // --------------------------------------------------
+
+  $configs['ncf_full_spec_test'] = [
+    'title'  => 'NCF 全フィールド入力テスト',
+    'screen' => 'post',   // 投稿タイプ
+    'context'=> 'normal', // 表示位置
+    'fields' => [
+      
+      // --- 基本フィールド ---
+      [
+        'key'   => 'demo_text',
+        'label' => '一行テキスト',
+        'type'  => 'text',
+        'desc'  => '標準的なテキスト入力です。',
+      ],
+      [
+        'key'   => 'demo_textarea',
+        'label' => 'テキストエリア',
+        'type'  => 'textarea',
+        'desc'  => '改行を含む文章用です。',
+      ],
+      [
+        'key'     => 'demo_select',
+        'label'   => 'セレクトボックス',
+        'type'    => 'select',
+        'options' => [
+          ''        => '選択してください',
+          'plan_a'  => 'Aプラン',
+          'plan_b'  => 'Bプラン',
+          'plan_c'  => 'Cプラン',
+        ],
+      ],
+
+      // --- 選択系（変数利用） ---
+      $common_radio,
+      $common_check,
+
+      // --- メディア・投稿関係 ---
+      [
+        'key'   => 'demo_image',
+        'label' => 'メイン画像 (Image)',
+        'type'  => 'image',
+        'desc'  => 'メディアライブラリから選択します。',
+      ],
+      [
+        'key'       => 'demo_post_select',
+        'label'     => '関連記事 (Post Select)',
+        'type'      => 'post',
+        'post_type' => 'post', // 選択対象の投稿タイプ
+        'desc'      => '既存の投稿記事を選択します。',
+      ],
+      [
+        'key'       => 'demo_page_select',
+        'label'     => '関連固定ページ',
+        'type'      => 'post',
+        'post_type' => 'page', // 固定ページを選択
+      ],
+
+      // --- リピーターフィールド ---
+      [
+        'key'        => 'demo_repeater',
+        'label'      => 'リピーター (複合テスト)',
+        'type'       => 'repeater',
+        'desc'       => '以下のセットを好きなだけ増やせます。',
+        'sub_fields' => [
+          [
+            'key'   => 'sub_title',
+            'label' => '見出し',
+            'type'  => 'text',
+          ],
+          [
+            'key'   => 'sub_image',
+            'label' => '写真',
+            'type'  => 'image',
+          ],
+          // リピーター内でも変数を再利用可能
+          $common_radio, 
+          $common_check,
+          [
+            'key'       => 'sub_link_post',
+            'label'     => 'リンク先記事',
+            'type'      => 'post',
+            'post_type' => 'post',
+          ],
+        ],
+      ],
+
+    ],
+  ];
+
+  return $configs;
+});
+?>
+<?php
 function my_pagination() {
   global $paged, $wp_query;
   if (empty($paged)) $paged = 1;
