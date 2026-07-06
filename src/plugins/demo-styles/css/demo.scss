@@ -1,0 +1,237 @@
+// Demo Styles: 雛形テーマのデモテンプレート用スタイル
+// テーマ本体を汚染しないよう、デモ用のクラスにだけ当てる。
+// 実案件ではこのプラグイン（demo-styles）ごと削除する。
+
+// テンプレートにラッパー要素がないため、bodyで簡易センタリングする
+body {
+  max-width: 960px;
+  margin-inline: auto;
+  padding: 0 24px;
+  line-height: 1.7;
+}
+
+.h1 {
+  margin-block: 1em 0.75em;
+  font-size: 1.75rem;
+}
+
+// --------------------------------------------------
+// 記事一覧（index / archive / search）
+// --------------------------------------------------
+.article_list_1 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin-block: 24px;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  &__link {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  &__title {
+    margin: 12px 16px 4px;
+    font-size: 1.1rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 16px;
+    color: #767676;
+    font-size: 0.85rem;
+  }
+
+  &__priority {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #eef2fb;
+    color: #466ec8;
+    font-size: 0.75rem;
+  }
+
+  &__excerpt {
+    margin: 8px 16px 16px;
+    color: #555;
+    font-size: 0.9rem;
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+// --------------------------------------------------
+// NCF出力セクション（single）
+// --------------------------------------------------
+.ncf_1 {
+  margin-block: 40px;
+  padding: 24px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  &__title {
+    margin-block: 0 16px;
+    font-size: 1.25rem;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: 12em 1fr;
+    gap: 8px 16px;
+    margin: 0;
+
+    @media (width <= 600px) {
+      grid-template-columns: 1fr;
+    }
+
+    dt {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__color {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    vertical-align: -0.15em;
+  }
+
+  &__subtitle {
+    margin-block: 24px 8px;
+    font-size: 1.1rem;
+  }
+
+  &__repeater {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__repeater_row {
+    padding: 16px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    background: #fafafa;
+
+    p {
+      margin: 4px 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  &__repeater_title {
+    margin-block: 0 8px;
+    font-size: 1rem;
+  }
+}
+
+// --------------------------------------------------
+// 記事詳細のmeta・前後記事ナビ
+// --------------------------------------------------
+.article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: #767676;
+  font-size: 0.85rem;
+}
+
+.post_nav_1 {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block: 32px;
+
+  p {
+    margin: 0;
+  }
+
+  &__next {
+    margin-left: auto;
+    text-align: right;
+  }
+}
+
+// --------------------------------------------------
+// ページネーション（my_pagination()の出力）
+// --------------------------------------------------
+.pagination_1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-block: 32px;
+
+  // prev/nextは空のaタグなのでラベルを補う
+  .prev::before {
+    content: "« 前へ";
+  }
+
+  .next::before {
+    content: "次へ »";
+  }
+
+  .main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+// --------------------------------------------------
+// 検索結果・404
+// --------------------------------------------------
+.search_result_1__count {
+  color: #767676;
+  font-size: 0.9rem;
+}
+
+.not_found_1 {
+  margin-block: 40px;
+
+  form {
+    margin-block: 16px;
+  }
+}

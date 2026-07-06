@@ -42,6 +42,7 @@ Directories under `src/plugins/` are auto-discovered (the `PLUGIN_DIRS` glob), s
 - **`nunifuchisaka-custom-fields`** (NCF) — a lightweight custom-fields (meta box) plugin. Field definitions live in the *theme*, not the plugin: the theme partial `src/theme/functions/_ncf.ejs` registers them via the `ncf_register_fields` filter. Field types, hooks (`ncf_show_output_code`, `ncf_after_save`), and usage are documented in its `README.md`. Meta keys are prefixed `ncf_`.
 - **`ncf-test`** — an in-WordPress test runner for NCF (see Testing).
 - **`hoge`** — a minimal sample plugin.
+- **`demo-styles`** — dev-only plugin that styles the demo templates (article list, NCF output section) so the theme's own CSS stays clean. Enqueues its `css/demo.css` on `wp_enqueue_scripts` at priority 110 (after the theme's 100). Deactivate or delete the directory in real projects.
 
 ### Testing (NCF Test plugin)
 
