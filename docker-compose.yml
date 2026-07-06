@@ -14,7 +14,8 @@ services:
       - ./htdocs:/var/www/html
       - ./php.ini:/usr/local/etc/php/conf.d/uploads.ini
       - ./dist/theme:/var/www/html/wp-content/themes/hoge
-      - ./dist/plugin:/var/www/html/wp-content/plugins/hoge
+      - ./dist/plugins/hoge:/var/www/html/wp-content/plugins/hoge
+      - ./dist/plugins/nunifuchisaka-custom-fields:/var/www/html/wp-content/plugins/nunifuchisaka-custom-fields
       - wp_default_theme_2025:/var/www/html/wp-content/themes/twentytwentyfive
       - wp_default_theme_2024:/var/www/html/wp-content/themes/twentytwentyfour
       - wp_default_theme_2023:/var/www/html/wp-content/themes/twentytwentythree
