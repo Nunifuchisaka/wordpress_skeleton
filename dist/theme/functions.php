@@ -17,7 +17,11 @@ remove_filter('the_content_feed', 'wp_staticize_emoji');
 remove_filter('comment_text_rss', 'wp_staticize_emoji');
 remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
 
-add_filter('is_protected_meta', '__return_false');
+// 保護メタ（_始まり）のカスタムフィールドUI露出は開発環境のみ
+// WP_ENVIRONMENT_TYPE未定義の環境では'production'扱いとなり無効化される
+if (in_array(wp_get_environment_type(), array('local', 'development'), true)) {
+  add_filter('is_protected_meta', '__return_false');
+}
 add_filter('wp_lazy_loading_enabled', '__return_false');
 
 function pre_($v) {
@@ -90,7 +94,7 @@ add_action('admin_init', function() {
     // ★ 安全のため esc_attr() を追加しました
     echo "<input type='text' class='input_1' id='keywords' name='keywords' value='" . esc_attr($val) . "'>";
   }, 'general');
-  register_setting( 'general', 'keywords' );
+  register_setting( 'general', 'keywords', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 
 });
 
@@ -446,7 +450,6 @@ function my_pagination() {
 
   // ページ数が2ぺージ以上の場合のみ、ページネーションを表示
   if (1 !== $pages) {
-    $url;
     $html = '<div class="pagination_1">';
 
     // 1ページ目でなければ、「前のページ」リンクを表示

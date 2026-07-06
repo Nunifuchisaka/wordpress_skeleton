@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nunifuchisaka Custom Fields
  * Description: カスタマイズ可能な軽量カスタムフィールド管理プラグイン
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Nunifuchisaka
  * License: GPL2
  * Text Domain: nunifuchisaka-custom-fields
@@ -398,14 +398,36 @@ class Custom_Fields {
       return call_user_func( $field['sanitize_callback'], $value, $field );
     }
 
+    $type = $field['type'] ?? 'text';
+
     if ( is_array( $value ) ) {
-      return array_map( 'sanitize_text_field', $value );
+      $value = array_map( 'sanitize_text_field', $value );
+      // checkboxはoptionsに定義された値だけを保存する
+      if ( 'checkbox' === $type && isset( $field['options'] ) ) {
+        $value = array_values( array_intersect( $value, array_map( 'strval', array_keys( $field['options'] ) ) ) );
+      }
+      return $value;
     }
 
-    switch ( $field['type'] ?? 'text' ) {
+    switch ( $type ) {
       case 'image':
-      case 'post':
         return $value ? absint( $value ) : '';
+      case 'post':
+        $post_id = $value ? absint( $value ) : 0;
+        if ( ! $post_id ) {
+          return '';
+        }
+        // 実在しない投稿や対象外post_typeのIDは保存しない
+        $selected_post = get_post( $post_id );
+        return ( $selected_post && $selected_post->post_type === ( $field['post_type'] ?? 'post' ) ) ? $post_id : '';
+      case 'select':
+      case 'radio':
+        $value = sanitize_text_field( $value );
+        // optionsに定義された値だけを保存する
+        if ( isset( $field['options'] ) && ! array_key_exists( $value, $field['options'] ) ) {
+          return '';
+        }
+        return $value;
       case 'number':
         return is_numeric( $value ) ? 0 + $value : '';
       case 'url':

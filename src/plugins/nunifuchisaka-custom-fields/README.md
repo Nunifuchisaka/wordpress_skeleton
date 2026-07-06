@@ -128,6 +128,7 @@ if ( ! empty( $members ) && is_array( $members ) ) {
 ## 補足
 
 - 保存時はフィールド型に応じたサニタイズが自動で適用されます。独自の加工が必要な場合のみ`sanitize_callback`を指定してください。
+- `select` / `radio` / `checkbox`は`options`に定義された値のみ、`post`は実在する対象post_typeの投稿IDのみ保存されます（定義外の値は空になります）。
 - `post`型は軽量化のため選択肢を既定50件に絞っていますが、保存済みの投稿は件数から漏れていても選択肢に含まれるため、再保存で選択が消えることはありません。件数を増やす場合は`posts_per_page`を指定します。
 - WYSIWYG（リッチエディタ）型は未対応です。長文はtextareaを使うか、本文側で管理してください。
 - このスケルトンでは`src/plugins/nunifuchisaka-custom-fields/`がソースで、webpackビルドで`dist/plugins/nunifuchisaka-custom-fields/`に出力されたものがDocker経由でWordPressにマウントされます。有効化は管理画面の「プラグイン」から行ってください。

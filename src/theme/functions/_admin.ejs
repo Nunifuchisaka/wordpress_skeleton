@@ -54,7 +54,7 @@ add_action('admin_init', function() {
     // ★ 安全のため esc_attr() を追加しました
     echo "<input type='text' class='input_1' id='keywords' name='keywords' value='" . esc_attr($val) . "'>";
   }, 'general');
-  register_setting( 'general', 'keywords' );
+  register_setting( 'general', 'keywords', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 
 });
 

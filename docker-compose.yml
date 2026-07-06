@@ -10,6 +10,8 @@ services:
       WORDPRESS_DB_USER: wordpress_user
       WORDPRESS_DB_PASSWORD: wordpress_password
       WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'WP_ENVIRONMENT_TYPE', 'local' );
     volumes:
       - ./htdocs:/var/www/html
       - ./php.ini:/usr/local/etc/php/conf.d/uploads.ini
