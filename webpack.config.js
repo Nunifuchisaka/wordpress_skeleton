@@ -32,7 +32,8 @@ const path = require('path'),
       DIST_UNCOMPRESSED_PATH = path.resolve(__dirname, DIST_UNCOMPRESSED_DIR),
       THEME_SRC_PATH = path.resolve(SRC_PATH, 'theme'),
       PLUGINS_SRC_PATH = path.resolve(SRC_PATH, 'plugins'),
-      PLUGIN_DIRS = glob.sync('*/', { cwd: PLUGINS_SRC_PATH }).map(dir => dir.slice(0, -1));
+      // globのバージョンにより末尾スラッシュの有無が変わるため、あれば取り除く
+      PLUGIN_DIRS = glob.sync('*/', { cwd: PLUGINS_SRC_PATH }).map(dir => dir.replace(/[\\/]+$/, ''));
 
 /**
  * ① 非圧縮版ビルド (出力先: dist_uncompressed)
