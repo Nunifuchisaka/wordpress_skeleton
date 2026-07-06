@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nunifuchisaka Custom Fields
  * Description: カスタマイズ可能な軽量カスタムフィールド管理プラグイン
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Nunifuchisaka
  * License: GPL2
  * Text Domain: nunifuchisaka-custom-fields
@@ -168,6 +168,9 @@ class Custom_Fields {
           } elseif ( isset($sub['type']) && $sub['type'] === 'url' ) {
              $code .= "    // {$sub_lbl} (URL)\n";
              $code .= "    echo esc_url( \$row['{$sub_key}'] ?? '' );\n";
+          } elseif ( isset($sub['type']) && $sub['type'] === 'textarea' ) {
+             $code .= "    // {$sub_lbl} (改行保持)\n";
+             $code .= "    echo nl2br( esc_html( \$row['{$sub_key}'] ?? '' ) );\n";
           } else {
              $code .= "    // {$sub_lbl}\n";
              $code .= "    echo esc_html( \$row['{$sub_key}'] ?? '' );\n";
@@ -199,6 +202,13 @@ class Custom_Fields {
       } elseif ( $type === 'url' ) {
         $code .= "{$var_name} = get_post_meta( get_the_ID(), '{$meta_key}', true );\n";
         $code .= "echo esc_url( {$var_name} );\n";
+
+      } elseif ( $type === 'date' ) {
+        // サイトの日付書式で表示する例
+        $code .= "{$var_name} = get_post_meta( get_the_ID(), '{$meta_key}', true );\n";
+        $code .= "if ( {$var_name} ) {\n";
+        $code .= "  echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( {$var_name} ) ) );\n";
+        $code .= "}\n";
 
       } else {
         $code .= "{$var_name} = get_post_meta( get_the_ID(), '{$meta_key}', true );\n";
@@ -404,6 +414,9 @@ class Custom_Fields {
         return sanitize_email( $value );
       case 'color':
         return sanitize_hex_color( $value ) ?: '';
+      case 'date':
+        // input[type=date]の値はYYYY-MM-DD。形式外の値は保存しない
+        return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ? $value : '';
       case 'textarea':
         return sanitize_textarea_field( $value );
       default:
@@ -467,7 +480,9 @@ class Custom_Fields {
 
               $clean_row = [];
               foreach ( $row as $sub_key => $sub_val ) {
-                $clean_row[ $sub_key ] = $this->sanitize_field_value( $sub_defs[ $sub_key ] ?? [], $sub_val );
+                // sub_fieldsに定義のないキーは保存しない
+                if ( ! isset( $sub_defs[ $sub_key ] ) ) continue;
+                $clean_row[ $sub_key ] = $this->sanitize_field_value( $sub_defs[ $sub_key ], $sub_val );
               }
               $clean_data[] = $clean_row;
             }

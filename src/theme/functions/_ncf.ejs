@@ -69,6 +69,37 @@ add_filter( 'ncf_register_fields', function( $configs ) {
       $common_radio,
       $common_check,
 
+      // --- 入力形式バリエーション ---
+      [
+        'key'   => 'demo_number',
+        'label' => '数値 (Number)',
+        'type'  => 'number',
+        'desc'  => '数値のみ入力できます。',
+      ],
+      [
+        'key'   => 'demo_url',
+        'label' => 'URL',
+        'type'  => 'url',
+        'desc'  => 'https:// から始まるURLを入力します。',
+      ],
+      [
+        'key'   => 'demo_email',
+        'label' => 'メールアドレス (Email)',
+        'type'  => 'email',
+      ],
+      [
+        'key'   => 'demo_date',
+        'label' => '日付 (Date)',
+        'type'  => 'date',
+        'desc'  => 'カレンダーから日付を選択します。',
+      ],
+      [
+        'key'   => 'demo_color',
+        'label' => 'カラー (Color)',
+        'type'  => 'color',
+        'desc'  => 'カラーピッカーで色を選択します（HEX値で保存）。',
+      ],
+
       // --- メディア・投稿関係 ---
       [
         'key'   => 'demo_image',
@@ -115,6 +146,11 @@ add_filter( 'ncf_register_fields', function( $configs ) {
             'label'     => 'リンク先記事',
             'type'      => 'post',
             'post_type' => 'post',
+          ],
+          [
+            'key'   => 'sub_url',
+            'label' => '外部リンク',
+            'type'  => 'url',
           ],
         ],
       ],

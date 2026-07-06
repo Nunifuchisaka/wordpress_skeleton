@@ -74,7 +74,7 @@ add_filter( 'ncf_register_fields', function( $configs ) {
 | `number` | 数値入力 | 数値 |
 | `url` | URL入力 | `esc_url_raw`済みの文字列 |
 | `email` | メール入力 | `sanitize_email`済みの文字列 |
-| `date` | 日付ピッカー（ブラウザ標準） | `YYYY-MM-DD`形式の文字列 |
+| `date` | 日付ピッカー（ブラウザ標準） | `YYYY-MM-DD`形式の文字列（形式外の値は空で保存） |
 | `color` | WordPressカラーピッカー | `#rrggbb`形式の文字列 |
 | `repeater` | 行の追加・削除・ドラッグ並べ替え | 行（連想配列）の配列 |
 
