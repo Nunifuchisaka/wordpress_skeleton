@@ -19,6 +19,17 @@ docker compose up  # WordPress + MariaDBを起動
 
 `src/` を編集するとwebpackが `dist/` にビルドし、Dockerのバインドマウント経由でWordPressに反映されます。BrowserSyncによるライブリロード付きです。
 
+## データベース（記事）の管理
+
+記事や設定はDBに保存されるためgit管理外ですが、ダンプをリポジトリにコミットして共有できます。
+
+```sh
+npm run db:export  # DBを db/wordpress_db.sql に書き出す（コミット用）
+npm run db:import  # db/wordpress_db.sql からDBを復元する（全テーブルを作り直す）
+```
+
+`db/wordpress_db.sql` にはレイアウト確認用のダミー記事入りのダンプをコミットしてあります。記事を追加・変更してリポジトリに残したいときは `npm run db:export` してからコミットしてください。
+
 ## ディレクトリ構成
 
 | パス | 内容 |
