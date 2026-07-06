@@ -125,6 +125,32 @@ if ( ! empty( $members ) && is_array( $members ) ) {
 
 編集画面のメタボックス下部にある「▶ まとめて出力コードを取得」を開くと、そのメタボックスの全フィールドを出力するPHPコードが生成されます。「コードをコピー」でクリップボードにコピーし、テンプレートに貼り付けて調整してください。
 
+リピーターの生成コードは`foreach ( $rows as $i => $row )`の形になっており、`$i`（0始まりの行番号）を奇数/偶数のスタイル分岐やid属性の付与にそのまま使えます。
+
+この欄は開発者向けツールなので、本番環境などクライアントに見せたくない場合は`ncf_show_output_code`フィルターで非表示にできます（下記フック参照）。
+
+## フック
+
+| フック | 種別 | 説明 |
+| --- | --- | --- |
+| `ncf_register_fields` | filter | フィールド定義を登録する（前述） |
+| `ncf_show_output_code` | filter | `false`を返すと「まとめて出力コードを取得」欄を非表示にする。`function( $show, $post )`で呼ばれる |
+| `ncf_after_save` | action | NCFの保存処理が完了した直後に発火。`function( $post_id, $saved )`。`$saved`は保存したメタキーと値の連想配列（削除されたキーは`null`）。キャッシュの破棄や外部連携などに |
+
+```php
+// 例1: 本番環境では出力コード欄を隠す
+if ( wp_get_environment_type() === 'production' ) {
+  add_filter( 'ncf_show_output_code', '__return_false' );
+}
+
+// 例2: NCFのフィールドが保存されたらキャッシュを消す
+add_action( 'ncf_after_save', function( $post_id, $saved ) {
+  if ( array_key_exists( 'ncf_demo_repeater', $saved ) ) {
+    delete_transient( 'my_repeater_cache_' . $post_id );
+  }
+}, 10, 2 );
+```
+
 ## 補足
 
 - 保存時はフィールド型に応じたサニタイズが自動で適用されます。独自の加工が必要な場合のみ`sanitize_callback`を指定してください。

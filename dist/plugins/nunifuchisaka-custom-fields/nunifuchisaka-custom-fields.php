@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nunifuchisaka Custom Fields
  * Description: カスタマイズ可能な軽量カスタムフィールド管理プラグイン
- * Version: 1.1.2
+ * Version: 1.2.0
  * Author: Nunifuchisaka
  * License: GPL2
  * Text Domain: nunifuchisaka-custom-fields
@@ -125,7 +125,10 @@ class Custom_Fields {
     }
     echo '</tbody></table>';
 
-    $this->render_all_code_snippet( $fields );
+    // 出力コード欄は開発者向けツールなので、本番環境などではフィルターで非表示にできる
+    if ( apply_filters( 'ncf_show_output_code', true, $post ) ) {
+      $this->render_all_code_snippet( $fields );
+    }
   }
 
   /**
@@ -148,7 +151,8 @@ class Custom_Fields {
         $sub_fields = $field['sub_fields'] ?? [];
         $code .= "{$var_name}_rows = get_post_meta( get_the_ID(), '{$meta_key}', true );\n";
         $code .= "if ( ! empty( {$var_name}_rows ) && is_array( {$var_name}_rows ) ) {\n";
-        $code .= "  foreach ( {$var_name}_rows as \$row ) {\n";
+        $code .= "  // \$i は0始まりの行番号（奇数/偶数の出し分けやid属性の付与に使えます）\n";
+        $code .= "  foreach ( {$var_name}_rows as \$i => \$row ) {\n";
         foreach ( $sub_fields as $sub ) {
           $sub_key = $sub['key'];
           $sub_lbl = $sub['label'] ?? '';
@@ -462,6 +466,7 @@ class Custom_Fields {
 
   /**
    * 保存処理
+   * 完了後に ncf_after_save アクションを発火する（$savedは保存したメタキー => 値。削除したキーはnull）
    */
   public function save_meta_data( $post_id ) {
     if ( ! isset( $_POST[ $this->nonce . '_field' ] ) ) return;
@@ -471,6 +476,7 @@ class Custom_Fields {
 
     $configs   = apply_filters( 'ncf_register_fields', [] );
     $post_type = get_post_type( $post_id );
+    $saved     = [];
 
     foreach ( $configs as $box ) {
       if ( empty( $box['fields'] ) ) continue;
@@ -509,18 +515,24 @@ class Custom_Fields {
               $clean_data[] = $clean_row;
             }
             update_post_meta( $post_id, $meta_key, $clean_data );
+            $saved[ $meta_key ] = $clean_data;
 
           } else {
-            update_post_meta( $post_id, $meta_key, $this->sanitize_field_value( $field, $data ) );
+            $clean_value = $this->sanitize_field_value( $field, $data );
+            update_post_meta( $post_id, $meta_key, $clean_value );
+            $saved[ $meta_key ] = $clean_value;
           }
 
         } else {
           if ( in_array( $type, [ 'checkbox', 'radio', 'image', 'post' ], true ) ) {
              delete_post_meta( $post_id, $meta_key );
+             $saved[ $meta_key ] = null;
           }
         }
       }
     }
+
+    do_action( 'ncf_after_save', $post_id, $saved );
   }
 }
 
