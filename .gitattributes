@@ -1,0 +1,3 @@
+# テキストファイルはすべてLFで統一する（.editorconfigのend_of_line = lfと揃える）
+# core.autocrlfの設定に関わらずこの指定が優先されるため、LF→CRLF変換の警告も出なくなる
+* text=auto eol=lf
