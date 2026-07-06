@@ -18,6 +18,7 @@ services:
       - ./dist/theme:/var/www/html/wp-content/themes/hoge
       - ./dist/plugins/hoge:/var/www/html/wp-content/plugins/hoge
       - ./dist/plugins/nunifuchisaka-custom-fields:/var/www/html/wp-content/plugins/nunifuchisaka-custom-fields
+      - ./dist/plugins/ncf-test:/var/www/html/wp-content/plugins/ncf-test
       - wp_default_theme_2025:/var/www/html/wp-content/themes/twentytwentyfive
       - wp_default_theme_2024:/var/www/html/wp-content/themes/twentytwentyfour
       - wp_default_theme_2023:/var/www/html/wp-content/themes/twentytwentythree
