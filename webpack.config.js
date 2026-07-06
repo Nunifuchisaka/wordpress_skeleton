@@ -29,7 +29,10 @@ const path = require('path'),
       ESLintPlugin = require('eslint-webpack-plugin'),
       SRC_PATH = path.resolve(__dirname, SRC_DIR),
       DIST_PATH = path.resolve(__dirname, DIST_DIR),
-      DIST_UNCOMPRESSED_PATH = path.resolve(__dirname, DIST_UNCOMPRESSED_DIR);
+      DIST_UNCOMPRESSED_PATH = path.resolve(__dirname, DIST_UNCOMPRESSED_DIR),
+      THEME_SRC_PATH = path.resolve(SRC_PATH, 'theme'),
+      PLUGINS_SRC_PATH = path.resolve(SRC_PATH, 'plugins'),
+      PLUGIN_DIRS = glob.sync('*/', { cwd: PLUGINS_SRC_PATH }).map(dir => dir.slice(0, -1));
 
 /**
  * ① 非圧縮版ビルド (出力先: dist_uncompressed)
@@ -67,10 +70,19 @@ const createConfig_development = ({ outputPath }) => {
     target: ['web'],
   };
 
-  // CSS (SCSS -> CSS)
-  glob.sync('**/*.scss', { cwd: SRC_PATH, ignore: '**/_*.scss' }).forEach(key => {
-    config.entry[key.replace('.scss', '.css')] = path.resolve(SRC_PATH, key);
+  // CSS (SCSS -> CSS) for theme
+  glob.sync('**/*.scss', { cwd: THEME_SRC_PATH, ignore: '**/_*.scss' }).forEach(key => {
+    config.entry[path.join('theme', key.replace('.scss', '.css'))] = path.resolve(THEME_SRC_PATH, key);
   });
+
+  // CSS (SCSS -> CSS) for plugins
+  PLUGIN_DIRS.forEach(pluginDir => {
+    const pluginSrcPath = path.resolve(PLUGINS_SRC_PATH, pluginDir);
+    glob.sync('**/*.scss', { cwd: pluginSrcPath, ignore: '**/_*.scss' }).forEach(key => {
+        config.entry[path.join('plugins', pluginDir, key.replace('.scss', '.css'))] = path.resolve(pluginSrcPath, key);
+    });
+  });
+
   config.module.rules.push({
     test: /\.scss$/,
     use: [
@@ -121,8 +133,6 @@ const createConfig_development = ({ outputPath }) => {
     })
   );
 
-  // ★ 変更点1: ここにあった EJS（HTML）の処理を完全に削除しました
-
   return config;
 }
 
@@ -144,7 +154,9 @@ const createConfig_production = ({ outputPath }) => {
     module: {
       rules: []
     },
-    plugins: [],
+    plugins: [
+      new RemoveEmptyScriptsPlugin(),
+    ],
     optimization: {
       minimize: true,
       minimizer: [ new TerserPlugin({ extractComments: false }) ]
@@ -162,10 +174,19 @@ const createConfig_production = ({ outputPath }) => {
     resolve: { extensions: ['.js'] },
   };
 
-  // JS
-  glob.sync('**/*.js', { cwd: SRC_PATH, ignore: '**/_*.js' }).forEach(key => {
-    config.entry[key.replace('.js', '')] = path.resolve(SRC_PATH, key);
+  // JS for theme
+  glob.sync('**/*.js', { cwd: THEME_SRC_PATH, ignore: '**/_*.js' }).forEach(key => {
+    config.entry[path.join('theme', key.replace('.js', ''))] = path.resolve(THEME_SRC_PATH, key);
   });
+
+  // JS for plugins
+  PLUGIN_DIRS.forEach(pluginDir => {
+    const pluginSrcPath = path.resolve(PLUGINS_SRC_PATH, pluginDir);
+    glob.sync('**/*.js', { cwd: pluginSrcPath, ignore: '**/_*.js' }).forEach(key => {
+        config.entry[path.join('plugins', pluginDir, key.replace('.js', ''))] = path.resolve(pluginSrcPath, key);
+    });
+  });
+
   config.module.rules.push({
     test: /\.js$/,
     exclude: /node_modules/,
@@ -178,9 +199,8 @@ const createConfig_production = ({ outputPath }) => {
     })
   );
 
-  // ★ 変更点2: EJS -> PHP の処理をこちらに引っ越し
-  // これにより、PHPは最初から直接 dist フォルダにだけ書き出され、さらに常時監視（watch）の対象になります。
-  glob.sync('**/*.ejs', { cwd: SRC_PATH, ignore: '**/_*.ejs' }).forEach(key => {
+  // EJS -> PHP for theme and plugins
+  glob.sync('{theme,plugins}/**/*.ejs', { cwd: SRC_PATH, ignore: '**/_*.ejs' }).forEach(key => {
     config.plugins.push(
       new HtmlWebpackPlugin({
         template: path.resolve(SRC_PATH, key),
@@ -190,6 +210,7 @@ const createConfig_production = ({ outputPath }) => {
       })
     );
   });
+
   config.module.rules.push({
     test: /\.ejs$/i,
     use: [
@@ -227,8 +248,6 @@ const createConfig_production = ({ outputPath }) => {
           from: DIST_UNCOMPRESSED_PATH,
           to: DIST_PATH,
           globOptions: {
-            // ★ PHPは dist_uncompressed に最初から出力されないため、
-            // ここでの処理は実質「CSSなどのコピー＆本番圧縮処理」だけになります。
             ignore: ['**/*.js', '**/.DS_Store', '**/Thumbs.db'],
           },
           transform: async (content, absoluteFrom) => {

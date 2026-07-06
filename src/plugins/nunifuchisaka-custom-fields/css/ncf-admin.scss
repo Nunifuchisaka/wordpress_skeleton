@@ -1,0 +1,55 @@
+.ncf-code-details {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+
+  summary {
+    cursor: pointer;
+    color: #0073aa;
+    font-weight: bold;
+    outline: none;
+  }
+}
+
+.ncf-code-area {
+  width: 100%;
+  font-family: monospace;
+  font-size: 12px;
+  background: #f0f0f1;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+  height: 300px;
+}
+
+.ncf-copy-btn {
+  margin-top: 5px !important;
+}
+
+.ncf-input-list {
+  label {
+    margin-right: 15px;
+    margin-bottom: 5px;
+    display: inline-block;
+  }
+}
+
+.ncf-image-wrapper {
+  .ncf-image-preview-wrapper {
+    margin-top: 5px;
+  }
+
+  .ncf-image-preview {
+    max-width: 150px;
+    max-height: 150px;
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    padding: 2px;
+    background: #fff;
+
+    &.hidden {
+      display: none;
+    }
+  }
+}
