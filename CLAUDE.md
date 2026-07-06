@@ -11,6 +11,8 @@ A skeleton for developing a single WordPress theme and companion plugins with a 
 - `npm install` — install build dependencies (no `package-lock.json` is committed; see `.gitignore`).
 - `npm start` (= `webpack`) — runs both webpack configs (see Architecture) in watch mode. This is the normal "dev loop" command; leave it running while editing `src/`.
 - `docker compose up` — starts WordPress (official `wordpress:latest` image) on `http://localhost:8081` plus a MariaDB container. Run this alongside `npm start`.
+- `npm run db:export` — dumps the WordPress database (posts, settings, etc.) to `db/wordpress_db.sql` so site content can be committed. DB data itself lives in the gitignored `db_data` volume, so run this after changing content you want to keep in the repo.
+- `npm run db:import` — restores the database from the committed `db/wordpress_db.sql` (drops and recreates all tables). `db/*.sql` is marked `-text` in `.gitattributes` so line-ending normalization can't corrupt serialized PHP data inside the dump.
 - There are no test or lint npm scripts; Stylelint and ESLint run automatically as webpack plugins during the build (see below) rather than via standalone commands. The NCF plugin has its own test runner (see Testing below).
 
 ## Architecture

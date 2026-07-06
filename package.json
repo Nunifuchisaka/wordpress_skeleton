@@ -1,7 +1,9 @@
 {
   "author": "",
   "scripts": {
-    "start": "webpack"
+    "start": "webpack",
+    "db:export": "docker compose exec -T db mysqldump --skip-dump-date --single-transaction -uwordpress_user -pwordpress_password wordpress_db > db/wordpress_db.sql",
+    "db:import": "docker compose exec -T db mysql -uwordpress_user -pwordpress_password wordpress_db < db/wordpress_db.sql"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
