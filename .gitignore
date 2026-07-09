@@ -19,8 +19,6 @@ Thumbs.db
 !/htdocs/wp-content/themes/index.php
 
 /htdocs/wp-content/uploads/*
-# ダミー記事用の画像はDBダンプ（db/wordpress_db.sql）から参照されるためコミットする
-!/htdocs/wp-content/uploads/2026
 
 !.keep
 /gitignore/

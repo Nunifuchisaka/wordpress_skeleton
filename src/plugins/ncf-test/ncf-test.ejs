@@ -110,9 +110,11 @@ class Runner {
 
     $fields = [
       [ 'key' => 't_text',      'label' => 'text',     'type' => 'text' ],
+      [ 'key' => 't_text_arr',  'label' => 'text',     'type' => 'text' ],
       [ 'key' => 't_textarea',  'label' => 'textarea', 'type' => 'textarea' ],
       [ 'key' => 't_num',       'label' => 'number',   'type' => 'number' ],
       [ 'key' => 't_num_bad',   'label' => 'number',   'type' => 'number' ],
+      [ 'key' => 't_num_arr',   'label' => 'number',   'type' => 'number' ],
       [ 'key' => 't_url',       'label' => 'url',      'type' => 'url' ],
       [ 'key' => 't_url_bad',   'label' => 'url',      'type' => 'url' ],
       [ 'key' => 't_email',     'label' => 'email',    'type' => 'email' ],
@@ -124,9 +126,11 @@ class Runner {
     ];
     $this->simulate_save( $post_id, $this->box( $fields ), [
       'ncf_t_text'      => '<b>Hello</b> World',
+      'ncf_t_text_arr'  => [ 'Hello' ],
       'ncf_t_textarea'  => "line1\nline2<script>alert(1)</script>",
       'ncf_t_num'       => '42',
       'ncf_t_num_bad'   => 'abc',
+      'ncf_t_num_arr'   => [ '42' ],
       'ncf_t_url'       => 'https://example.com/path?a=1&b=2',
       'ncf_t_url_bad'   => 'javascript:alert(1)',
       'ncf_t_email'     => 'foo@example.com',
@@ -138,9 +142,11 @@ class Runner {
     ] );
 
     $this->assert_same( 'Hello World', $this->meta( $post_id, 't_text' ), 'text: HTMLタグが除去される' );
+    $this->assert_same( '', $this->meta( $post_id, 't_text_arr' ), 'text: 配列POSTは保存されない' );
     $this->assert_same( "line1\nline2", $this->meta( $post_id, 't_textarea' ), 'textarea: 改行を保持しつつscriptが除去される' );
     $this->assert_same( '42', $this->meta( $post_id, 't_num' ), 'number: 数値が保存される' );
     $this->assert_same( '', $this->meta( $post_id, 't_num_bad' ), 'number: 数値以外は空で保存される' );
+    $this->assert_same( '', $this->meta( $post_id, 't_num_arr' ), 'number: 配列POSTは保存されない' );
     $this->assert_same( 'https://example.com/path?a=1&b=2', $this->meta( $post_id, 't_url' ), 'url: 正常なURLはそのまま保存される' );
     $this->assert_not_contains( 'javascript:', $this->meta( $post_id, 't_url_bad' ), 'url: javascript:スキームが除去される' );
     $this->assert_same( 'foo@example.com', $this->meta( $post_id, 't_email' ), 'email: 正常なメールアドレスが保存される' );
@@ -165,6 +171,8 @@ class Runner {
       [ 'key' => 'c_radio',      'label' => 'radio',    'type' => 'radio',    'options' => $options ],
       [ 'key' => 'c_radio_bad',  'label' => 'radio',    'type' => 'radio',    'options' => $options ],
       [ 'key' => 'c_check',      'label' => 'checkbox', 'type' => 'checkbox', 'options' => $options ],
+      [ 'key' => 'c_select_arr', 'label' => 'select',   'type' => 'select',   'options' => $options ],
+      [ 'key' => 'c_radio_arr',  'label' => 'radio',    'type' => 'radio',    'options' => $options ],
     ];
     $this->simulate_save( $post_id, $this->box( $fields ), [
       'ncf_c_select'     => 'green',
@@ -172,6 +180,8 @@ class Runner {
       'ncf_c_radio'      => 'blue',
       'ncf_c_radio_bad'  => 'purple',
       'ncf_c_check'      => [ 'red', 'purple', 'blue' ],
+      'ncf_c_select_arr' => [ 'green' ],
+      'ncf_c_radio_arr'  => [ 'blue' ],
     ] );
 
     $this->assert_same( 'green', $this->meta( $post_id, 'c_select' ), 'select: options内の値が保存される' );
@@ -179,6 +189,8 @@ class Runner {
     $this->assert_same( 'blue', $this->meta( $post_id, 'c_radio' ), 'radio: options内の値が保存される' );
     $this->assert_same( '', $this->meta( $post_id, 'c_radio_bad' ), 'radio: options外の値は空で保存される' );
     $this->assert_same( [ 'red', 'blue' ], $this->meta( $post_id, 'c_check' ), 'checkbox: options内の値だけが配列で保存される' );
+    $this->assert_same( '', $this->meta( $post_id, 'c_select_arr' ), 'select: 配列POSTは保存されない' );
+    $this->assert_same( '', $this->meta( $post_id, 'c_radio_arr' ), 'radio: 配列POSTは保存されない' );
   }
 
   /**
@@ -189,27 +201,44 @@ class Runner {
     $post_id   = $this->make_post();
     $target_id = $this->make_post( [ 'post_title' => 'NCF Test 選択対象', 'post_status' => 'publish' ] );
     $page_id   = $this->make_post( [ 'post_title' => 'NCF Test 固定ページ', 'post_type' => 'page' ] );
+    $image_id  = $this->make_attachment( 'NCF Test 画像', 'image/jpeg' );
+    $pdf_id    = $this->make_attachment( 'NCF Test PDF', 'application/pdf' );
 
     $fields = [
       [ 'key' => 'i_image',       'label' => 'image', 'type' => 'image' ],
       [ 'key' => 'i_image_empty', 'label' => 'image', 'type' => 'image' ],
+      [ 'key' => 'i_image_arr',   'label' => 'image', 'type' => 'image' ],
+      [ 'key' => 'i_image_post',  'label' => 'image', 'type' => 'image' ],
+      [ 'key' => 'i_image_pdf',   'label' => 'image', 'type' => 'image' ],
+      [ 'key' => 'i_image_none',  'label' => 'image', 'type' => 'image' ],
       [ 'key' => 'i_post',        'label' => 'post',  'type' => 'post' ],
       [ 'key' => 'i_post_wrong',  'label' => 'post',  'type' => 'post' ],
       [ 'key' => 'i_post_none',   'label' => 'post',  'type' => 'post' ],
+      [ 'key' => 'i_post_arr',    'label' => 'post',  'type' => 'post' ],
     ];
     $this->simulate_save( $post_id, $this->box( $fields ), [
-      'ncf_i_image'       => '12',
+      'ncf_i_image'       => (string) $image_id,
       'ncf_i_image_empty' => '',
+      'ncf_i_image_arr'   => [ (string) $image_id ],
+      'ncf_i_image_post'  => (string) $target_id,
+      'ncf_i_image_pdf'   => (string) $pdf_id,
+      'ncf_i_image_none'  => '999999999',
       'ncf_i_post'        => (string) $target_id,
       'ncf_i_post_wrong'  => (string) $page_id,
       'ncf_i_post_none'   => '999999999',
+      'ncf_i_post_arr'    => [ (string) $target_id ],
     ] );
 
-    $this->assert_same( '12', $this->meta( $post_id, 'i_image' ), 'image: 添付ファイルIDが整数で保存される' );
+    $this->assert_same( (string) $image_id, $this->meta( $post_id, 'i_image' ), 'image: 実在する画像添付ファイルIDが保存される' );
     $this->assert_same( '', $this->meta( $post_id, 'i_image_empty' ), 'image: 空値は空のまま保存される' );
+    $this->assert_same( '', $this->meta( $post_id, 'i_image_arr' ), 'image: 配列POSTは保存されない' );
+    $this->assert_same( '', $this->meta( $post_id, 'i_image_post' ), 'image: 通常投稿IDは保存されない' );
+    $this->assert_same( '', $this->meta( $post_id, 'i_image_pdf' ), 'image: 画像ではない添付ファイルIDは保存されない' );
+    $this->assert_same( '', $this->meta( $post_id, 'i_image_none' ), 'image: 実在しないIDは保存されない' );
     $this->assert_same( (string) $target_id, $this->meta( $post_id, 'i_post' ), 'post: 実在する対象post_typeの投稿IDが保存される' );
     $this->assert_same( '', $this->meta( $post_id, 'i_post_wrong' ), 'post: 対象外post_typeのIDは空で保存される' );
     $this->assert_same( '', $this->meta( $post_id, 'i_post_none' ), 'post: 実在しないIDは空で保存される' );
+    $this->assert_same( '', $this->meta( $post_id, 'i_post_arr' ), 'post: 配列POSTは保存されない' );
   }
 
   /**
@@ -356,11 +385,16 @@ class Runner {
     $html = $this->render( $post_id, [
       [ 'key' => 'r_text', 'label' => 'テキスト', 'type' => 'text', 'desc' => '説明文です' ],
       [ 'key' => 'r_img',  'label' => '画像',     'type' => 'image' ],
+      [ 'key' => 'r_post', 'label' => '投稿',     'type' => 'post' ],
+      [ 'key' => 'main-visual', 'label' => '安全な変数名', 'type' => 'text' ],
       [
         'key'        => 'r_rep',
         'label'      => 'リピーター',
         'type'       => 'repeater',
-        'sub_fields' => [ [ 'key' => 'name', 'label' => '名前', 'type' => 'text' ] ],
+        'sub_fields' => [
+          [ 'key' => 'name', 'label' => '名前', 'type' => 'text' ],
+          [ 'key' => 'related-post', 'label' => '関連記事', 'type' => 'post' ],
+        ],
       ],
     ] );
 
@@ -375,6 +409,10 @@ class Runner {
     $this->assert_contains( 'ncf-add-row', $html, 'リピーターの行追加ボタンが出力される' );
     $this->assert_contains( 'ncf-code-details', $html, '出力コード欄が既定で表示される' );
     $this->assert_contains( '$r_rep_rows', $html, '出力コードにリピーターのforeachコードが含まれる' );
+    $this->assert_contains( '$main_visual = get_post_meta', $html, '出力コードではハイフン付きkeyが安全なPHP変数名に変換される' );
+    $this->assert_not_contains( '$main-visual', $html, '出力コードに不正なPHP変数名が含まれない' );
+    $this->assert_contains( 'esc_url( get_permalink', $html, 'post型の出力コードはURLをエスケープする' );
+    $this->assert_contains( 'esc_html( get_the_title', $html, 'post型の出力コードはタイトルをエスケープする' );
   }
 
   /**
@@ -419,6 +457,21 @@ class Runner {
       'post_status' => 'draft',
     ] ) );
     if ( $post_id && ! is_wp_error( $post_id ) ) {
+      $this->fixtures[] = $post_id;
+    }
+    return $post_id;
+  }
+
+  private function make_attachment( $title, $mime_type ) {
+    $post_id = wp_insert_attachment( [
+      'post_title'     => $title,
+      'post_type'      => 'attachment',
+      'post_status'    => 'inherit',
+      'post_mime_type' => $mime_type,
+    ] );
+    if ( $post_id && ! is_wp_error( $post_id ) ) {
+      $ext = ( 'image/jpeg' === $mime_type ) ? 'jpg' : 'pdf';
+      update_attached_file( $post_id, 'ncf-test-' . $post_id . '.' . $ext );
       $this->fixtures[] = $post_id;
     }
     return $post_id;

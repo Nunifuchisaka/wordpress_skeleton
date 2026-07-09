@@ -246,6 +246,14 @@ const createConfig_production = ({ outputPath }) => {
           noErrorOnMissing: true,
         },
         {
+          from: path.resolve(PLUGINS_SRC_PATH, '**/{readme.txt,LICENSE,LICENSE.txt}'),
+          to(pathData) {
+            const relativePath = path.relative(PLUGINS_SRC_PATH, pathData.absoluteFilename);
+            return path.join(DIST_PATH, 'plugins', relativePath);
+          },
+          noErrorOnMissing: true,
+        },
+        {
           from: DIST_UNCOMPRESSED_PATH,
           to: DIST_PATH,
           globOptions: {

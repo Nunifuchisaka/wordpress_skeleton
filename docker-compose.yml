@@ -17,7 +17,6 @@ services:
       - ./php.ini:/usr/local/etc/php/conf.d/uploads.ini
       - ./dist/theme:/var/www/html/wp-content/themes/hoge
       - ./dist/plugins/hoge:/var/www/html/wp-content/plugins/hoge
-      - ./dist/plugins/nunifuchisaka-custom-fields:/var/www/html/wp-content/plugins/nunifuchisaka-custom-fields
       - ./dist/plugins/ncf-test:/var/www/html/wp-content/plugins/ncf-test
       - ./dist/plugins/demo-styles:/var/www/html/wp-content/plugins/demo-styles
       - wp_default_theme_2025:/var/www/html/wp-content/themes/twentytwentyfive
